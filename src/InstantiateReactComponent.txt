@@ -1,0 +1,34 @@
+@startuml
+title instantiateReactComponent
+Entity InstantiateReactComponent order 5
+participant ReactCompositeComponentWrapper order 10
+Entity ReactCompositeComponent order 20
+Entity ReactHostComponent order 30
+==create internal component==
+[-> InstantiateReactComponent: instantiate(node, ...)
+alt typeof node === object
+  InstantiateReactComponent -> InstantiateReactComponent: node:**element**
+  alt typeof element.type === string
+    InstantiateReactComponent -> ReactHostComponent: createInternalComponent
+    return component:**instance**
+  |||
+  else element.type is internalComponentType(has receiveComponet method)
+  |||
+    create element.type
+    InstantiateReactComponent -> element.type: new(element)
+    return component:**instance**
+  |||
+  else 
+    InstantiateReactComponent -> ReactCompositeComponentWrapper: new ReactCompositeComponentWrapper(element)
+    ReactCompositeComponentWrapper -> ReactCompositeComponent: construct(element)
+    return component:**instance**
+  end
+|||
+else if typeof node === string or number
+  InstantiateReactComponent -> ReactHostComponent: createInstanceForText(node)
+end
+
+==initialize for DOM/ART diffing==
+InstantiateReactComponent -> InstantiateReactComponent: _mountIndex=0, _mountImage=null
+
+@enduml
