@@ -1,0 +1,43 @@
+@startuml
+title Mount
+Entity ReactMount
+participant _renderSubtreeIntoContainer
+Entity React 
+Entity "ReactElement\(validate*)"
+participant _renderNewRootComponent
+Entity InstantiateReactComponent
+Entity ReactUpdates
+participant Transaction
+
+[-> ReactMount: render(//nextElement//, //container//, //callback//)
+ReactMount -> _renderSubtreeIntoContainer: parentComponent, ...
+ReactMount -> React: createElement(//TopLevelWrapper//, //child:nextElement//)
+React -> "ReactElement\(validate*)": createElement(...)
+return TopLevelWrapperElement
+React -> ReactMount: TopLevelWrapperElement:**NextWrappedElement**
+alt if !parentComponent
+  ReactMount -> _renderNewRootComponent: NextWrappedElement
+  _renderNewRootComponent -> InstantiateReactComponent: instantiate(NextWrappedElement)
+  return componentInstance
+  _renderNewRootComponent -> ReactUpdates: batchUpdates(//batchedMountComponentIntoNode//, //componentInstance//, //container//)
+  ReactUpdates -> Transaction: **perform**
+  Transaction -> ReactMount: batchedMountComponentIntoNode(componentInstance, container, transaction...)
+  batchedMountComponentIntoNode -> ReactReconcileTransaction: getPooled, perform mountComponentIntoNode
+  ReactReconcileTransaction -> Transaction: **Start**
+  ReactReconcileTransaction -> Transaction: **perform** mountComponentIntoNode
+  Transaction -> ReactMount: mountComponentIntoNode(instance, ...)
+  ReactMount -> mountComponentIntoNode: (...)
+  mountComponentIntoNode -> ReactDOMContainerInfo: container
+  return info(_node, _tag, ...)
+  mountComponentIntoNode -> ReactConciler: mountComponent(instance, transaction, containerInfo)
+  return markup
+
+else 
+  ...
+end
+  
+
+
+
+
+@enduml

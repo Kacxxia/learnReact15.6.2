@@ -1,0 +1,9 @@
+@startuml
+title ReactCompositeComponent
+Entity ReactCompositeComponent
+==construct==
+[-> ReactCompositeComponent: construct(element)
+ReactCompositeComponent -> compositeComponent:
+return "component(\n_currentElement, _instance, _hostParent...\n_updateBatchNumber,_pendingStateQueue, _renderedComponent, _pendingCallbacks...)"
+[<- ReactCompositeComponent: compositeComponent
+@enduml
