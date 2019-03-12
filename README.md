@@ -1,4 +1,6 @@
 # learnReact15.6.2
+### ps. The UML is written in PlantUML
+
 这个项目将以UML 时序图的形式，帮助记忆React 15.6.2的主要工作流程。
 
 このプロジェクトに、忘れないように、シーケンス図の形式でReact 15.6.2の流れを描いてある
