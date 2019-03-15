@@ -30,7 +30,7 @@ else
   ReactReconcileTransaction -> Transaction: **close**: restore selection, enable event, perform MountReadyCallback
   Transaction -> runBatchedUpdates: perform
   loop dirtyComponents
-    runBatchedUpdates -> ReactConciler: performUpdateIfNecessary()
+    runBatchedUpdates -> ReactReconciler: performUpdateIfNecessary()
     runBatchedUpdates -> ReactUpdatesFlushTransaction: enqueue component._calbacks
   end
   Transaction -> ReactReconcileTransaction: **close**

@@ -21,15 +21,14 @@ alt if !parentComponent
   return componentInstance
   _renderNewRootComponent -> ReactUpdates: batchUpdates(//batchedMountComponentIntoNode//, //componentInstance//, //container//)
   ReactUpdates -> Transaction: **perform**
-  Transaction -> ReactMount: batchedMountComponentIntoNode(componentInstance, container, transaction...)
+  Transaction -> batchedMountComponentIntoNode: (componentInstance, container, transaction...)
   batchedMountComponentIntoNode -> ReactReconcileTransaction: getPooled, perform mountComponentIntoNode
   ReactReconcileTransaction -> Transaction: **Start**
   ReactReconcileTransaction -> Transaction: **perform** mountComponentIntoNode
-  Transaction -> ReactMount: mountComponentIntoNode(instance, ...)
-  ReactMount -> mountComponentIntoNode: (...)
+  Transaction -> mountComponentIntoNode: (instance, ...)
   mountComponentIntoNode -> ReactDOMContainerInfo: container
   return info(_node, _tag, ...)
-  mountComponentIntoNode -> ReactConciler: mountComponent(instance, transaction, containerInfo)
+  mountComponentIntoNode -> ReactReconciler: mountComponent(instance, transaction, containerInfo)
   return markup
 
 else 

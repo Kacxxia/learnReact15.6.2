@@ -1,0 +1,61 @@
+@startuml
+title ReactReconciler
+Entity ReactReconciler
+participant instance
+participant ReactCompositeComponent
+participant mountComponent
+participant constructComponent
+participant performInitialMount
+participant _instance
+participant _renderValidateComponent
+participant instantiateReactComponent
+participant ReactReconcilerTransaction
+
+Entity ReactUpdateQueue
+
+==mountComponent==
+[-> ReactReconciler: mountComponent(instance, transaction, containerInfo, ...)
+ReactReconciler -> instance: mountComponent(transaction, containerInfo,...)
+alt instance instanceof ReactCompositeComponent
+  instance -> ReactCompositeComponent: mountComponent(transaction, ...)
+  ReactCompositeComponent -> mountComponent
+  mountComponent -> mountComponent: set _context, containerInfo, props, context...
+  mountComponent -> ReactReconcilerTransaction: getUpdateQueue()
+  ReactReconcilerTransaction -> ReactUpdateQueue
+  return ReactUpdateQueue
+  ReactReconcilerTransaction -> mountComponent: ReactUpdateQueue:**updateQueue**
+  mountComponent -> constructComponent: (props, context, updateQueue..)
+  alt Component is not Stateless
+    create Component
+    constructComponent -> Component: new
+    return Component
+    constructComponent -> mountComponent: Component
+  else
+    create StatelessComponent
+    constructComponent -> StatelessComponent: Component()
+    return Component: **renderedElement**
+    constructComponent -> mountComponent:Component: **renderedElement**
+  end
+  mountComponent -> mountComponent: set _compositeType = enum[Stateless, Pure, Inpure]
+  mountComponent -> mountComponent: set this._instance
+  mountComponent -> ReactInstanceMap: set(instance, this)
+  mountComponent -> mountComponent: reset _pendingStateQueue, _pendingforceUpdate
+  mountComponent -> performInitialMount: (renderedElement, transaction...)
+  alt _instance.componentWillMount exists
+    performInitialMount -> _instance: componentWillMount()
+    alt _pendingStateQueue exists
+    _instance -> _instance: supress state
+  end
+  alt not Stateless
+    performInitialMount -> _renderValidateComponent
+    _renderValidateComponent -> _instance: render()
+    return rendered: renderedElement
+  end
+  performInitialMount -> instantiateReactComponent: (renderedElement...)
+  return i:**child**
+  performInitialMount -> ReactReconciler: mountComponent(child, transaction, ...)
+  return k:**markup**
+  performInitialMount -> ReactCompositeComponent: markup
+end
+
+@enduml
