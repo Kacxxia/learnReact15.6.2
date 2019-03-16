@@ -1,0 +1,52 @@
+@startuml
+title ReactDOMComponent
+Entity ReactDOMComponent
+participant mountComponent
+Entity ReactDOMComponentTree
+participant _updateDOMProperties
+Entity ReactReconciler
+participant _createInitialChildren
+participant DOMLazyTree
+participant mountChildren
+participant _reconcilerInstantiateChildren
+Entity ReactChildReconciler
+Entity TraverseAllChildren
+
+==mountComponent==
+[-> ReactDOMComponent: mountComponent
+mountComponent -> mountComponent: enqueue track/trap value/bubbledEvents for input|select|img...
+mountComponent -> mountComponent: calc namespaceURI
+mountComponent -> mountComponent: createElement->el
+mountComponent -> ReactDOMComponentTree: precacheNode(this, el)
+mountComponent -> _updateDOMProperties: set style, props
+create DOMLazyTree
+mountComponent -> DOMLazyTree: (el)
+return lazyTree[children, node, text, insertTreeBefore...]
+mountComponent -> _createInitialChildren: (transaction, props, lazyTree...)
+alt one children && typeof child string/number
+  _createInitialChildren -> DOMLazyTree: queueText(lazyTree, child)
+else
+  _createInitialChildren -> mountChildren: (children...)
+  mountChildren -> _reconcilerInstantiateChildren
+  _reconcilerInstantiateChildren -> ReactChildReconciler: instantiateChildren(...)
+  ReactChildReconciler -> TraverseAllChildren: callback: ReactReconciler.instantiate
+  return childInstances
+  ReactChildReconciler -> _reconcilerInstantiateChildren: childInstances
+  _reconcilerInstantiateChildren -> mountChildren: childInstances:**children**
+  mountChildren -> mountChildren: set _renderedChildren -> **children**
+  mountChildren -> _createInitialChildren: children
+  loop children
+    mountChildren -> ReactReconciler: mountComponent(child)
+    return mountImage
+    mountChildren -> mountChildren: mountImages.push(mountImage)
+  end
+  mountChildren -> _createInitialChildren: mountImages
+  loop mountImages
+    _createInitialChildren -> DOMLazyTree: queueChild(lazyTree, image)
+  end
+end
+_createInitialChildren -> ReactDOMComponent: lazyTree:mountImage
+ReactDOMComponent -> ReactDOMComponent: enqueue postMount, autofocus for input|btn...
+[<- ReactDOMComponent: mountImage -> markup
+
+@enduml

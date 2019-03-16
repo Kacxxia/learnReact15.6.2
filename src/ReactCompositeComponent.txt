@@ -1,9 +1,67 @@
 @startuml
 title ReactCompositeComponent
 Entity ReactCompositeComponent
+participant ReactCompositeComponent
+participant mountComponent
+Entity ReactReconcilerTransaction
+Entity ReactUpdateQueue
+Entity ReactInstanceMap
+participant constructComponent
+participant performInitialMount
+Entity ReactReconciler
+participant _instance
+participant Component
+participant StatelessComponent
+participant _renderValidateComponent
+Entity instantiateReactComponent
 ==construct==
 [-> ReactCompositeComponent: construct(element)
 ReactCompositeComponent -> compositeComponent:
 return "component(\n_currentElement, _instance, _hostParent...\n_updateBatchNumber,_pendingStateQueue, _renderedComponent, _pendingCallbacks...)"
 [<- ReactCompositeComponent: compositeComponent
+
+==mountComponent==
+[-> ReactCompositeComponent: mountComponent(transaction, ...)
+mountComponent -> mountComponent: set _context, containerInfo, props, context...
+mountComponent -> ReactReconcilerTransaction: getUpdateQueue()
+ReactReconcilerTransaction -> ReactUpdateQueue
+return ReactUpdateQueue
+ReactReconcilerTransaction -> mountComponent: ReactUpdateQueue:**updateQueue**
+mountComponent -> constructComponent: (props, context, updateQueue..)
+alt Component is not Stateless
+  create Component
+  constructComponent -> Component: new
+  return Component
+  constructComponent -> mountComponent: Component
+else
+  create StatelessComponent
+  constructComponent -> StatelessComponent: Component()
+  return Component: **renderedElement**
+  constructComponent -> mountComponent:Component: **renderedElement**
+end
+mountComponent -> mountComponent: set _compositeType = enum[Stateless, Pure, Inpure]
+mountComponent -> mountComponent: set this._instance
+mountComponent -> ReactInstanceMap: set(instance, this)
+mountComponent -> mountComponent: reset _pendingStateQueue, _pendingforceUpdate
+mountComponent -> performInitialMount: (renderedElement, transaction...)
+alt _instance.componentWillMount exists
+  performInitialMount -> _instance: componentWillMount()
+  alt _pendingStateQueue exists
+  _instance -> _instance: supress state
+  end
+end
+alt not Stateless
+  performInitialMount -> _renderValidateComponent
+  _renderValidateComponent -> _instance: render()
+  return rendered: renderedElement
+end
+performInitialMount -> instantiateReactComponent: instantiate..(renderedElement...)
+return i:**child**
+performInitialMount -> ReactReconciler: mountComponent(child, transaction, ...)
+return k:**markup**
+performInitialMount -> ReactCompositeComponent: markup
+alt _instance.componentDidMount exists
+  ReactCompositeComponent -> ReactReconcilerTransaction: enqueue DidMount..
+end
+[<- ReactCompositeComponent: instance
 @enduml
