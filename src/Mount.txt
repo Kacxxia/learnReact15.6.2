@@ -7,7 +7,14 @@ Entity "ReactElement\(validate*)"
 participant _renderNewRootComponent
 Entity InstantiateReactComponent
 Entity ReactUpdates
-participant Transaction
+Entity Transaction
+participant batchedMountComponentIntoNode
+Entity ReactReconcileTransaction
+participant mountComponentIntoNode
+Entity ReactDOMContainerInfo
+Entity ReactReconciler
+participant mountImageIntoNode
+Entity DOMLazyTree
 
 [-> ReactMount: render(//nextElement//, //container//, //callback//)
 ReactMount -> _renderSubtreeIntoContainer: parentComponent, ...
@@ -30,7 +37,16 @@ alt if !parentComponent
   return info(_node, _tag, ...)
   mountComponentIntoNode -> ReactReconciler: mountComponent(instance, transaction, containerInfo)
   return markup
-
+  mountComponentIntoNode -> mountImageIntoNode: (markup, container, shouldReuseMarkup...)
+  alt !shouldReuseMarkup
+    mountImageIntoNode -> mountImageIntoNode: remove all children of container
+    alt if ie/edge
+      mountImageIntoNode -> DOMLazyTree: insert children one by one
+    else
+      mountImageIntoNode -> DOMLazyTree: insert whole tree
+    end
+  end
+  mountComponentIntoNode -> Transaction: **Close**
 else 
   ...
 end

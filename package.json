@@ -1,0 +1,21 @@
+{
+  "name": "learnReact15.6.2",
+  "version": "1.0.0",
+  "description": "这个项目将以UML 时序图的形式，帮助记忆React 15.6.2的主要工作流程。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "java -jar plantuml.jar src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kacxxia/learnReact15.6.2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kacxxia/learnReact15.6.2/issues"
+  },
+  "homepage": "https://github.com/Kacxxia/learnReact15.6.2#readme"
+}

@@ -1,16 +1,19 @@
 @startuml
 title instantiateReactComponent
-Entity InstantiateReactComponent order 5
-participant ReactCompositeComponentWrapper order 10
-Entity ReactCompositeComponent order 20
-Entity ReactHostComponent order 30
+Entity InstantiateReactComponent 
+participant ReactCompositeComponentWrapper 
+Entity ReactCompositeComponent
+Entity ReactHostComponent
 ==create internal component==
 [-> InstantiateReactComponent: instantiate(node, ...)
 alt typeof node === object
   InstantiateReactComponent -> InstantiateReactComponent: node:**element**
   alt typeof element.type === string
-    InstantiateReactComponent -> ReactHostComponent: createInternalComponent
-    return component:**instance**
+    InstantiateReactComponent -> ReactHostComponent: createInternalComponent(element)
+    create ReactDOMComponent
+    ReactHostComponent -> ReactDOMComponent: new(element)
+    ReactDOMComponent -> ReactHostComponent: component[_currentElement, _renderedChildren, _previousStyle...]
+    ReactHostComponent -> InstantiateReactComponent: component:**instance**
   |||
   else element.type is internalComponentType(has receiveComponet method)
   |||

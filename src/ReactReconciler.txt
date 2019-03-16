@@ -4,18 +4,22 @@ Entity ReactReconciler
 participant instance
 participant ReactCompositeComponent
 participant mountComponent
+Entity ReactReconcilerTransaction
+Entity ReactUpdateQueue
+Entity ReactInstanceMap
 participant constructComponent
 participant performInitialMount
 participant _instance
+participant Component
+participant StatelessComponent
 participant _renderValidateComponent
-participant instantiateReactComponent
-participant ReactReconcilerTransaction
+Entity instantiateReactComponent
 
-Entity ReactUpdateQueue
 
 ==mountComponent==
 [-> ReactReconciler: mountComponent(instance, transaction, containerInfo, ...)
 ReactReconciler -> instance: mountComponent(transaction, containerInfo,...)
+==mount ReactCompositeComponent==
 alt instance instanceof ReactCompositeComponent
   instance -> ReactCompositeComponent: mountComponent(transaction, ...)
   ReactCompositeComponent -> mountComponent
@@ -45,17 +49,58 @@ alt instance instanceof ReactCompositeComponent
     performInitialMount -> _instance: componentWillMount()
     alt _pendingStateQueue exists
     _instance -> _instance: supress state
+    end
   end
   alt not Stateless
     performInitialMount -> _renderValidateComponent
     _renderValidateComponent -> _instance: render()
     return rendered: renderedElement
   end
-  performInitialMount -> instantiateReactComponent: (renderedElement...)
+  performInitialMount -> instantiateReactComponent: instantiate..(renderedElement...)
   return i:**child**
   performInitialMount -> ReactReconciler: mountComponent(child, transaction, ...)
   return k:**markup**
   performInitialMount -> ReactCompositeComponent: markup
+  alt _instance.componentDidMount exists
+    ReactCompositeComponent -> ReactReconcilerTransaction: enqueue DidMount..
+  end
+  ReactCompositeComponent -> instance: markup
+end
+
+==mount ReactDOMComponent==
+alt instance instanceof ReactDOMComponent
+  instance -> ReactDOMComponent: mountComponent(transaction, ...)
+  ReactDOMComponent -> mountComponent
+  mountComponent -> mountComponent: enqueue track/trap value/bubbledEvents for input|select|img...
+  mountComponent -> mountComponent: calc namespaceURI
+  mountComponent -> mountComponent: createElement->el
+  mountComponent -> ReactDOMComponentTree: precacheNode(this, el)
+  mountComponent -> _updateDOMProperties: set style, props
+  create DOMLazyTree
+  mountComponent -> DOMLazyTree: (el)
+  return lazyTree[children, node, text, insertTreeBefore...]
+  mountComponent -> _createInitialChildren: (transaction, props, lazyTree...)
+  alt one children && typeof child string/number
+    _createInitialChildren -> DOMLazyTree: queueText(lazyTree, child)
+  else
+    _createInitialChildren -> mountChildren: (children...)
+    mountChildren -> _reconcilerInstantiateChildren
+    _reconcilerInstantiateChildren -> ReactChildReconciler: instantiateChildren(...)
+    return childInstances
+    _reconcilerInstantiateChildren -> mountChildren: childInstances:**children**
+    loop children
+      mountComponent -> ReactReconciler: mountComponent(child)
+      return mountImage
+      mountComponent -> mountComponent: mountImages.push(mountImage)
+    end
+    mountChildren -> _createInitialChildren: mountImages
+    loop mountImages
+      _createInitialChildren -> DOMLazyTree: queueChild(lazyTree, image)
+    end
+  end
+  _createInitialChildren -> ReactDOMComponent: lazyTree:mountImage
+  ReactDOMComponent -> ReactDOMComponent: enqueue postMount, autofocus for input|btn...
+  ReactDOMComponent -> instance: mountImage -> markup
 end
 
 @enduml
