@@ -1,0 +1,10 @@
+@startuml
+title setState
+Entity ReactComponent
+[-> ReactComponent: setState(state, callback)
+ReactComponent -> setState
+setState -> "this.updater(ReactUpdateQueue)": enqueueSetState()
+alt if callback
+  setState -> "this.updater(ReactUpdateQueue)": enqueueCallback()
+end
+@enduml

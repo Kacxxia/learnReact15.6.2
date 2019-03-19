@@ -49,4 +49,52 @@ _createInitialChildren -> ReactDOMComponent: lazyTree:mountImage
 ReactDOMComponent -> ReactDOMComponent: enqueue postMount, autofocus for input|btn...
 [<- ReactDOMComponent: mountImage -> markup
 
+
+==receiveComponent==
+[-> ReactDOMComponent: receiveComponent(nextElement)
+receiveComponent -> updateComponent: (prevEl, nextEl, ...)
+updateComponent -> _updateDOMProperties
+updateComponent -> _updateDOMChildren: (lastProps, nextProps, ...)
+alt props has only text children
+  _updateDOMChildren -> updateTextContent
+else ...
+  _updateDOMChildren -> _updateChildren
+  _updateChildren -> _reconcilerUpdateChildren: (prevChildren(instances), nextChildren(elements), ...)
+  _reconcilerUpdateChildren -> TraverseAllChildren: flatten
+  return {[key]: element}: **nextChildren**
+  _reconcilerUpdateChildren -> ReactChildReconciler: updateChildren(prevChildren, nextChildren, mountImages...)
+  loop nextChildren
+    alt key exists in prev & next && prevChild/nextChild's key/type remain same
+      ReactChildReconciler -> ReactReconciler: receiveComponent(prevChild, nextElement)
+      ReactChildReconciler -> ReactChildReconciler: update nextChild to prevChild
+    else 
+      alt if prevChild
+        ReactChildReconciler -> ReactReconciler: unmountComponent(prevChild)
+      end
+      ReactChildReconciler -> instantiateReactComponent: (nextElement)
+      return instantiated
+      ReactChildReconciler -> ReactChildReconciler: update nextChild to instantiated
+      ReactChildReconciler -> ReactReconciler: mountComponent(instantiated)
+      return nextChildMountImage
+      ReactChildReconciler -> ReactChildReconciler: push image to mountImages
+  end
+  loop prevChildren
+    alt not exists in nextChildren
+      ReactChildReconciler -> ReactReconciler: unmountComponent(prevChild)
+    end
+  end
+  _reconcilerUpdateChildren -> _updateChildren: flattened children: **nextChildren**
+  loop nextChildren
+    alt prevChild === nextChild
+      _updateChildren -> _updateChildren: enqueue updates moveChild
+    else 
+      _updateChildren -> _updateChildren: enqueue updates _mountChildAtIndex
+    end
+  end
+  _updateChildren -> DOMChildrenOperations: handle updates
+  
+
+end
+
+
 @enduml
