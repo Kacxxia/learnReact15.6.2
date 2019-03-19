@@ -1,0 +1,12 @@
+@startuml
+title DOMChildrenOperations
+Entity DOMChildrenOperations
+Entity DOMLazyTree
+
+[-> DOMChildrenOperations: processUpdates(parentNode, updates)
+  loop updates
+    alt update type INSERT_MARKUP
+      DOMChildrenOperations -> DOMLazyTree: insertTreeBefore
+    else update type MOVE_EXISTING
+  end
+@enduml

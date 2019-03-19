@@ -35,7 +35,28 @@ else
   end
   Transaction -> ReactReconcileTransaction: **close**
   Transaction -> ReactUpdatesFlushTransaction: **close**
-
 end
+
+|||
+
+==enqueueUpdate==
+[-> ReactUpdates: enqueueUpdate(component)
+alt is batching
+  ReactUpdates -> ReactUpdates: push to dirtyComponents
+else
+  ReactUpdates -> batchingStrategy: batchedUpdates(enqueueUpdate, component)
+end
+
+|||
+
+==runBatchedUpdates==
+[-> runBatchedUpdates
+loop dirtyComponents
+  runBatchedUpdates -> ReactReconciler: performUpdateIfNecessary(component, ...)
+  alt if component has callback
+    runBatchedUpdates -> runBatchedUpdates: transaction(flush).enqueueCallbacks
+  end
+end
+
 
 @enduml

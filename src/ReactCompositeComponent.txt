@@ -47,7 +47,7 @@ mountComponent -> performInitialMount: (renderedElement, transaction...)
 alt _instance.componentWillMount exists
   performInitialMount -> _instance: componentWillMount()
   alt _pendingStateQueue exists
-  _instance -> _instance: supress state
+  _instance -> _instance: surpress state
   end
 end
 alt not Stateless
@@ -64,4 +64,46 @@ alt _instance.componentDidMount exists
   ReactCompositeComponent -> ReactReconcilerTransaction: enqueue DidMount..
 end
 [<- ReactCompositeComponent: instance
+
+==update==
+[-> performUpdateIfNecessary: (transaction)
+alt this._pendingElement !== null
+  performUpdateIfNecessary -> ReactReconciler: receiveComponent(this, this._pendingElement...)
+else if _pendingStateQueue or _pendingforceUpdate
+  performUpdateIfNecessary -> updateComponent: (transaction, this._currentElement, ...)
+  updateComponent -> updateComponent: this._instance(component): **inst**
+  create inst
+  alt inst has willReceiveProps
+    updateComponent -> inst: willReceiveProps()
+  end
+  updateComponent -> updateComponent: surpressState()
+  alt !forceUpdate
+    alt inst has shouldComponentUpdate
+      updateComponent -> inst: shouldComponentUpdate()
+    else if inst is pureComponent
+      create shallowEqual
+      updateComponent -> shallowEqual
+    end
+  end
+  alt shouldUpdate
+    updateComponent -> _performComponentUpdate: (..)
+    alt inst has componentWillUpdate
+      _performComponentUpdate -> inst: componentWillUpdate()
+    end
+    _performComponentUpdate -> _performComponentUpdate: set _currentElement|props,state,context...
+    _performComponentUpdate -> _updateRenderedComponent
+    alt prev/next element type/key remain same
+      _updateRenderedComponent -> ReactReconciler: receiveComponent(prevInstance, nextElement, ...)
+    end
+    alt inst has componentDidUpdate
+      _performComponentUpdate -> ReactReconcilerTransaction: mountready enqueue didupdate
+    end
+
+  else
+    updateComponent -> updateComponent: set _currentElement|props,state,context...
+  end
+
+end
+
+
 @enduml
