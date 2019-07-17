@@ -1,0 +1,46 @@
+@startuml SetState
+:setState()/
+:**Pend States**
+get corresponding internal CompositeComponent,
+enqueue state to the pending state queue of the internal component;
+
+:**Batch Updates**>
+if (isBatchingUpdates?) then (no)
+  :Enter DefaultBatchingStrategyTransaction
+  (refer to Mount.plantuml)|
+  :set isBatchingUpdates to true;
+  :GO __Batch Updates__;
+else (yes)
+  :push the compositeComponent to dirtyComponents;
+endif 
+:End Batch Updates<
+
+:**Flush Batched Updates**.
+Leaving DefaultBatchingStrategyTransaction
+flush batched updates>
+:**Prepare for the possible nestling updates or callbacks**
+Enter FlushTransaction
+Wrappers
+- NESTED_UPDATES: 
+  (record dirtyComponents length
+  , flush batched updates again if has nestling updates)
+- UPDATE_QUEUEING:
+  (reset callbackQueue, notify all callbacks)>
+:**Prevent selection change, Prevent Events, Prepare for possible DidMount/DidUpdate callbacks**.
+Enter ReconcileTransaction(refer to mount.plantuml)>
+:**update parent component first to reduce update**
+sort dirtyComponents by mountOrder;
+:**start update, update if Necessary**
+loop dirtyComponents, perform updates if necessary;
+:**component updated, collect its callbacks**
+at the end of each loop,
+if dirtyComponent has callbacks stored, enqueue to transaction's queue;
+:**Restore selection, etc**
+Leave ReconcileTransaction<
+:**Do nested updates, etc**
+Leave FlushTransaction<
+:**End Flush Batched Updates, isBatchingUpdates to false**
+Leave DefaultBatchingStreategyTransaction<
+:if have callbacks, store them to internal component,
+GO __if isBatchingUpdates?__;
+@endmul

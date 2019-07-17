@@ -1,0 +1,70 @@
+@startuml ReceiveComponent
+:**do different update depending on the component**
+the type of instance of the prevComponent;
+fork
+  :CompositeComponent;
+  :**Do component self update, rendering, comparing, etc. Recursing**
+  GO __Update Component__ in <__performUpdateIfNecessary.plantuml__>;
+fork again
+  :DOMComponent;
+  :**update DOM props**;
+  :**update children of the component**>
+  :**Compare prev/next children, might be text, reactObjects..**
+  compare lastChildren/lastContent/lastHtml with nextChildren/nextContent/nextHtml|
+  fork
+    :**if text changed, or text changed to Children,  update text content**
+    unmount prev children.
+    make textContent update.
+    process update queue;
+  fork again
+    :**if not have next text and html changed, update markup**
+    unmount prev children.
+    make setMarkup update.
+    process update queue;
+  fork again
+    :**Else from the other cases. Children changed.**>
+    :**Mounting: Unmount the old and mount the new ones**>
+    :**Get next children map, a (name, reactElement) map of the current rendered children**
+    :traverse children
+    generate name from key or index of child.
+    store (name, child) to result;
+    :**for all nextChildren, find corresponding prev rendered Element**
+    get prev children, a map(name, internal component), they have already been stored.
+    loop next children map,
+    get name,
+    find the corresponding prev component from the map,
+    then retrieve its renderedElement, which has been stored to the internal component;
+    :**Compare prevElement and nextElement**|
+    fork
+      :**if prevElement exists
+      and (both are text Or their type remain same)**;
+      :GO __Receive Component__;
+    fork again
+      :**else. The type changed or render a new element**>
+      :**if type changed, unmount the component of prevChild**
+      if prevChildElement exists,
+      unmount prevChild;
+      :**Get the dom tree of the next element**
+      instantiate and mount nextElement;
+      :**store the tree, for inserting them to DOM at a time in a later time**;
+    end fork
+    :**Any way, remove the prev child component that nolonger exists**;
+    :**End Mounting**<
+    :**Manimulate DOM**>
+    :**Compare every prevChild internal component to nextChild internal component**
+    **(Note that some prevChild component might have been unmounted 
+    or changed to the newly instantiate component during the above steps)**
+    the nextChild map, (name, internal instance), is generated from above steps, after mount|
+    fork
+      :**if the internal component didn't change, Move DOM node**
+      enqueue move update;
+    fork again
+      :**if new component mounted, insert the corresponding DOM Tree**
+      enqueue insert update;
+    fork again
+      :**if the component is no longer exists, remove the node**
+      enqueue remove update;
+    end fork
+    :**process all of the updates**;
+    :**End Manipulate DOM**<
+@enduml

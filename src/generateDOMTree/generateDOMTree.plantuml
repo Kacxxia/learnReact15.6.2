@@ -1,0 +1,62 @@
+@startuml GenerateDOMTree
+:**turn JSX into ReactElement**;
+:**To handle different type of element**
+instantiate element to internal Component;
+:**Mount Component**;
+fork
+  :CompositeComponent;
+  :**create instance**|
+  fork
+    :Stateless<
+    :invoke;
+  fork again
+    :Stateful<
+    :new;
+  end fork
+  :**call WillMount() life cycle**
+  supress the pedning states;
+  :**get child element**|
+  fork
+    :Stateless<
+    :the returned result;
+  fork again
+    :Stateful<
+    :call render();
+  end fork
+  :**Mount child component**
+  instantiate child component.
+  GO __Mount Component__;
+  :**After a long chain of incursive calls, DOM Tree generated;
+  :call DidMount() lifecycle;
+  -[dashed]->
+fork again
+  :DOMComponent;
+  :**create DOM Element/Node**;
+  :**update DOM props**
+  update props/attrs that exists in nextProps,
+  remove/unset those are not;
+  :**build a tree to store the node and dom tree of its childs**
+  create a Tree(LazyTree) to store the node, children, content;
+  if (children are text?) then (yes)
+    :set the content of tree;
+  else (no)
+    :**mount children**>
+    :**instantiate children**
+    traverse and instantiate children,
+    store (name, childInst) to childInstances;
+    :**mount**
+    loop childInstances and mount
+    GO __MountComponent__;
+    :insert the result tree to the parent node tree;
+    if (ie(8-11) or Edge?) then (yes)
+      :store tree, delay the DOM insertion;
+    else (no) 
+      :appendChild to the parent node;
+    endif
+  endif
+  :return the DOM tree;
+  -[dashed]-> (In some cases, eg.no custom component);
+end fork
+:return the whole DOM tree;
+stop
+@enduml
