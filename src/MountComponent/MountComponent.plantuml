@@ -1,8 +1,6 @@
-@startuml GenerateDOMTree
-:**turn JSX into ReactElement**;
-:**To handle different type of element**
-instantiate element to internal Component;
-:**Mount Component**;
+@startuml MountComponent
+:**Mount Component**|
+:type|
 fork
   :CompositeComponent;
   :**create instance**|
@@ -15,7 +13,7 @@ fork
   end fork
   :**call WillMount() life cycle**
   supress the pedning states;
-  :**get child element**|
+  :**get render element**|
   fork
     :Stateless<
     :the returned result;
@@ -23,11 +21,11 @@ fork
     :Stateful<
     :call render();
   end fork
-  :**Mount child component**
-  instantiate child component.
+  :**Mount render component**
+  instantiate render component.
   GO __Mount Component__;
-  :**After a long chain of incursive calls, DOM Tree generated;
   :call DidMount() lifecycle;
+  :**attach ref if needed**;
   -[dashed]->
 fork again
   :DOMComponent;
@@ -54,8 +52,7 @@ fork again
       :appendChild to the parent node;
     endif
   endif
-  :return the DOM tree;
-  -[dashed]-> (In some cases, eg.no custom component);
+  :**attach ref if needed**;
 end fork
 :return the whole DOM tree;
 stop
