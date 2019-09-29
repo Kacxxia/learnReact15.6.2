@@ -1,0 +1,25 @@
+@startuml DOMRender
+:**DOMRender**|
+:ReactDOM.render(<App />, container)/
+:**maybe just do update**;
+if (if previous instance exists\nand should do update) then (yes)
+  :do update;
+else 
+  :render new root>
+  :turn JSX in to React Element;
+  :instantiate element to different component according to type;
+  :Enter DefaultBatchingStrategyTransaction
+  Wrappers
+  - FLUSH_BATCHED_UPDATES: ( , flush updates)
+  - RESET_BATCHED_UPDATES: ( , reset isBatchingUpdates status to false)>
+  :Enter ReconcileTransaction
+  Wrappers
+  - SELECTION_RESTORATION: (record selection, restore selection)
+  - EVENT_SUPPRESSION: (disable BrowserEventEmitter, reset to previous status)
+  - ON_DOM_READY_QUEUEING: (reset DidMount/DidUpdate callback queue, notify all callbacks)>
+  :**generate the corresponding DOM Tree(image) of <App />**
+  GO __Mount Component__;
+  :**insert the image to the node container**>
+  :Leave ReconcileTransaction<
+  :Leave ReconcileTransaction<
+@enduml

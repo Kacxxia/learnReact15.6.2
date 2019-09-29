@@ -1,0 +1,59 @@
+@startuml UpdateDOMChildren
+:**Update DOM children**|
+:**remove children if necessary**
+if children switch from Component to text/html,
+or if children switch to no content;
+:**update children according to the type of change**;
+fork
+  :**if change to text, update text content**
+  make textContent update.
+  process update queue;
+fork again
+  :**if change to html, update markup**
+  make setMarkup update.
+  process update queue;
+fork again
+  :**if change to Component, update children**>
+  :**Mounting: Unmount the old and mount the new ones**>
+  :**Get next children map, a <name, reactElement> map of the current rendered children**
+  :traverse children
+  generate name from key or index of child.
+  store <name, child> to result;
+  :**for all nextChildren, find corresponding prev rendered Element**
+  get prev children from a map<name, internal component> that have already been stored in early time.
+  loop next children map,
+  get name,
+  find the corresponding prev component from the map,
+  then retrieve its renderedElement, which has been stored to the internal component;
+  :**Compare prevElement and nextElement**|
+  fork
+    :**if prevElement exists
+    and (both are text Or their type remain same Or both empty)**;
+    :**update prev compoent**
+    GO __Receive Component__;
+  fork again
+    :**else. The type changed or need to render a new element**>
+    :**unmount prev component if needed**
+    GO __Unmount Component__;
+    :**Get the dom tree of the new element**
+    instantiate and mount nextElement;
+    :**store the tree to insert later**;
+  end fork
+  :**Any way, unmount the prev child component that no longer exists**;
+  :**End Mounting**<
+  :**Manimulate DOM**>
+  :**Compare every prev component and next component**|
+  fork
+    :**if the internal component didn't change, Move DOM node**
+    enqueue move update;
+  fork again
+    :**if new component mounted, insert the corresponding DOM Tree**
+    enqueue insert update;
+  fork again
+    :**if the component is no longer exists, remove the node**
+    enqueue remove update;
+  end fork
+  :**process all of the DOM updates**;
+  :**End Manipulate DOM**<
+end fork
+@enduml

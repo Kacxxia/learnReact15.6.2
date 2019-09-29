@@ -1,5 +1,5 @@
 @startuml SetState
-:setState()/
+:**setState**|
 :**Pend States**
 get corresponding internal CompositeComponent,
 enqueue state to the pending state queue of the internal component;
@@ -13,6 +13,7 @@ if (isBatchingUpdates?) then (no)
 else (yes)
   :push the compositeComponent to dirtyComponents;
 endif 
+:**record the update batch id it should be in for reducing update**;
 :End Batch Updates<
 
 :**Flush Batched Updates**.
@@ -30,6 +31,8 @@ Wrappers
 Enter ReconcileTransaction(refer to mount.plantuml)>
 :**update parent component first to reduce update**
 sort dirtyComponents by mountOrder;
+:**record batch number to reduce update**
+updateBatchNumber++;
 :**start update, update if Necessary**
 loop dirtyComponents, perform updates if necessary;
 :**component updated, collect its callbacks**

@@ -1,42 +1,14 @@
-@startuml performUpdateIfNecessary
-:??!!Batch Number;
+@startuml PerformUpdateIfNecessary
+:**PerformUpdateIfNecessary**|
+:**assert it should be in its own update batch to reduce update**;
 fork
-  :??!!_pendingElement;
+  :**is root react component update?**
+  Noninitial ReactDOM.render() might enqueue 
+  _pendingElement to update root component;
+  :**update children**
+  GO __Receive Component__;
 fork again
-  :**Update Component**|
-  :**Maybe call willReceiveProps lifecycle**
-  depending on whether ether props or context changed;
-  :**Calc nextState**
-  surpress pending states;
-  :**should we update the children?**|
-  fork
-    :**if have called forceupdate**;
-  fork again
-    :**Or depending on the shouldComponentUpdate() lifecycle**
-    shouldComponentUpdate() lifecycle;
-  fork again 
-    :**Or if the component is pure,
-    isShallowEqual(prevProps, nextProps), (state, nextState);
-  end fork
-  if (should?) then (yes)
-    :**call willUpdate() lifecycle**;
-    :**update props.state,context, etc**;
-    :**get children**
-    get nextRenderedElement from render() lifecycle;
-    if (only do updates when\nthe component still render nothing \nOr still render text\nOr type and key remains same) then (meet)
-      :**update children**
-      update the rendered element(ReceiveComponent);
-    else
-      :**Replace the old with the new one**
-      unmount the prev component.
-      instantiate and mount the nextElement.
-      record the new rendered element inst.
-      replace the old DOM node with the new one;
-    endif
-  else (no)
-    :**update props,state,context, etc**;
-  endif
-fork again
-  :none;
+  :**is caused by setState or forceUpdate?**;
+  :**GO __Update Component__;
 end fork
 @enduml

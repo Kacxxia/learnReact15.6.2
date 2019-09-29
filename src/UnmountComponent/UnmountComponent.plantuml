@@ -1,0 +1,17 @@
+@startuml UnmountComponent
+:UnmountComponent|
+:**detach ref**;
+:type|
+fork
+  :CompositeComponent;
+  :**call WillUnmount**;
+  :**Unmount rendered component**
+  GO __UnmountComponent__;
+  :**delete from record**;
+fork again
+  :DOMcomponent;
+  :**unmount children**;
+  :**remove form cache**;
+  :**remove all listener**;
+end fork
+@enduml
